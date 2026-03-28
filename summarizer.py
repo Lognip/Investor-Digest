@@ -1,26 +1,20 @@
 """
-AI summarization engine using Anthropic Claude.
+AI summarization engine using OpenAI.
 Extracts investor-relevant insights from SEC filings and press releases.
 """
 
-import httpx
-import anthropic
+from openai import OpenAI
 import config
 
 _client = None
 
 
-def _get_client() -> anthropic.Anthropic:
+def _get_client() -> OpenAI:
     global _client
     if _client is None:
-        if not config.ANTHROPIC_API_KEY:
-            raise ValueError("ANTHROPIC_API_KEY is not set in your .env file.")
-        # Pass an explicit httpx client to bypass any proxy auto-detection,
-        # which conflicts across different httpx versions.
-        _client = anthropic.Anthropic(
-            api_key=config.ANTHROPIC_API_KEY,
-            http_client=httpx.Client(),
-        )
+        if not config.OPENAI_API_KEY:
+            raise ValueError("OPENAI_API_KEY is not set in your .env file.")
+        _client = OpenAI(api_key=config.OPENAI_API_KEY)
     return _client
 
 
@@ -41,7 +35,7 @@ def summarize_filing(
     filing_text: str,
 ) -> dict:
     """
-    Summarize a filing and return a structured dict with investor-relevant insights.
+    Summarize a filing using OpenAI and return structured investor insights.
 
     Returns:
     {
@@ -78,16 +72,18 @@ Format your response with clear markdown headings. Be concise — the investor i
 """
 
     try:
-        client = _get_client()   # inside try so key errors are caught gracefully
-        message = client.messages.create(
-            model="claude-opus-4-6",
+        client   = _get_client()
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user",   "content": prompt},
+            ],
             max_tokens=1024,
-            messages=[{"role": "user", "content": prompt}],
-            system=SYSTEM_PROMPT,
+            temperature=0.2,
         )
-        raw = message.content[0].text
+        raw = response.choices[0].message.content
 
-        # Parse structured fields from the markdown
         result = {
             "headline":     _extract_section(raw, "Headline", single_line=True),
             "key_points":   _extract_bullets(raw, "Key Points"),
@@ -122,7 +118,6 @@ def _extract_section(text: str, heading: str, single_line: bool = False) -> str:
     match both '## Outlook' and '## Outlook / Guidance'.
     """
     import re
-    # [^\n#]* allows " / Guidance" or ": " suffixes after the keyword
     pattern = rf"#+\s*{re.escape(heading)}[^\n#]*\n(.*?)(?=\n#+\s|\Z)"
     match   = re.search(pattern, text, re.IGNORECASE | re.DOTALL)
     if not match:

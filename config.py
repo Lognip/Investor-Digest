@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-ANTHROPIC_API_KEY      = os.getenv("ANTHROPIC_API_KEY", "")
+OPENAI_API_KEY         = os.getenv("OPENAI_API_KEY", "")
 EMAIL_SENDER           = os.getenv("EMAIL_SENDER", "")
 EMAIL_PASSWORD         = os.getenv("EMAIL_PASSWORD", "")
 SMTP_HOST              = os.getenv("SMTP_HOST", "smtp.gmail.com")
