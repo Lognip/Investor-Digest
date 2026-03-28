@@ -162,15 +162,27 @@ def add_holding():
     if Holding.query.filter_by(user_id=current_user.id, ticker=ticker).first():
         flash(f"{ticker} is already in your portfolio.", "warning")
         return redirect(url_for("dashboard"))
-    cik = edgar.get_cik(ticker)
+
+    # Look up CIK and company name in one call. If the network is down or the
+    # ticker list hasn't loaded yet we still allow adding — we'll verify when
+    # the first filing check runs.
+    cik, company = edgar.get_cik_and_name(ticker)
     if not cik:
-        flash(f"Could not find \"{ticker}\" on SEC EDGAR. Check the ticker and try again.", "error")
-        return redirect(url_for("dashboard"))
-    company = edgar.get_company_name(ticker)
-    holding = Holding(user_id=current_user.id, ticker=ticker, company=company)
+        # Could be a network error or a genuinely invalid ticker.
+        # Warn the user but don't hard-block — they may just have a slow connection.
+        flash(
+            f"⚠️ Could not verify \"{ticker}\" on SEC EDGAR right now "
+            f"(network issue or invalid ticker). It was added anyway — "
+            f"if it's a valid US ticker, filings will appear when you check.",
+            "warning"
+        )
+
+    holding = Holding(user_id=current_user.id, ticker=ticker, company=company or ticker)
     db.session.add(holding)
     db.session.commit()
-    flash(f"Added {company} ({ticker}) to your portfolio.", "success")
+
+    if cik:
+        flash(f"Added {company} ({ticker}) to your portfolio.", "success")
     return redirect(url_for("dashboard"))
 
 
