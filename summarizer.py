@@ -3,6 +3,7 @@ AI summarization engine using Anthropic Claude.
 Extracts investor-relevant insights from SEC filings and press releases.
 """
 
+import httpx
 import anthropic
 import config
 
@@ -14,7 +15,12 @@ def _get_client() -> anthropic.Anthropic:
     if _client is None:
         if not config.ANTHROPIC_API_KEY:
             raise ValueError("ANTHROPIC_API_KEY is not set in your .env file.")
-        _client = anthropic.Anthropic(api_key=config.ANTHROPIC_API_KEY)
+        # Pass an explicit httpx client to bypass any proxy auto-detection,
+        # which conflicts across different httpx versions.
+        _client = anthropic.Anthropic(
+            api_key=config.ANTHROPIC_API_KEY,
+            http_client=httpx.Client(),
+        )
     return _client
 
 
