@@ -33,21 +33,33 @@ login_manager.login_message_category = "info"
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    return db.session.get(User, int(user_id))
+
+# ── Custom Jinja2 filters ───────────────────────────────────────────────────────
+@app.template_filter("fromjson")
+def fromjson_filter(value):
+    """Parse a JSON string into a Python object. Safe — returns [] on error."""
+    try:
+        return json.loads(value) if value else []
+    except Exception:
+        return []
 
 with app.app_context():
     db.create_all()
 
 
 # ── Core logic ─────────────────────────────────────────────────────────────────
-def process_holding(holding: Holding) -> list[FilingSummary]:
+def process_holding(holding: Holding, user: "User | None" = None) -> list[FilingSummary]:
     """Fetch new filings for a holding, summarise, and save. Returns new records."""
+    # Accept user explicitly to avoid SQLAlchemy DetachedInstanceError in scheduler
+    if user is None:
+        user = db.session.get(User, holding.user_id)
+
     filing_types = []
-    user = holding.user
-    if user.notify_on_8k:  filing_types.append("8-K")
-    if user.notify_on_10k: filing_types.append("10-K")
-    if user.notify_on_10q: filing_types.append("10-Q")
-    if not filing_types:   filing_types = config.FILING_TYPES
+    if user and user.notify_on_8k:  filing_types.append("8-K")
+    if user and user.notify_on_10k: filing_types.append("10-K")
+    if user and user.notify_on_10q: filing_types.append("10-Q")
+    if not filing_types:            filing_types = config.FILING_TYPES
 
     new_filings = edgar.get_new_filings_since(
         holding.ticker, since_date=holding.last_checked,
@@ -201,7 +213,7 @@ def delete_holding(holding_id):
 @login_required
 def check_holding(holding_id):
     holding = Holding.query.filter_by(id=holding_id, user_id=current_user.id).first_or_404()
-    new_records = process_holding(holding)
+    new_records = process_holding(holding, user=current_user)
     if new_records:
         flash(f"Found {len(new_records)} new filing(s) for {holding.ticker}.", "success")
     else:
@@ -215,7 +227,7 @@ def check_all():
     holdings = Holding.query.filter_by(user_id=current_user.id).all()
     all_new  = []
     for h in holdings:
-        all_new.extend(process_holding(h))
+        all_new.extend(process_holding(h, user=current_user))
     if all_new:
         dicts   = [r.to_dict() for r in all_new]
         success = emailer.send_digest(dicts, recipient=current_user.digest_address)
@@ -299,7 +311,7 @@ def start_scheduler():
             for user in users:
                 all_new = []
                 for h in user.holdings:
-                    all_new.extend(process_holding(h))
+                    all_new.extend(process_holding(h, user=user))
                 if all_new:
                     if emailer.send_digest([r.to_dict() for r in all_new],
                                            recipient=user.digest_address):

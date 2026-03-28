@@ -376,7 +376,7 @@
 
             <div class="summary-headline">{{ s.headline }}</div>
 
-            {% set kp = s.key_points | tojson | fromjson if s.key_points else [] %}
+            {% set kp = s.key_points | fromjson %}
             {% if kp %}
               <ul class="summary-points">
                 {% for point in kp[:4] %}

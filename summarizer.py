@@ -112,9 +112,13 @@ Format your response with clear markdown headings. Be concise — the investor i
 # ── Parsing helpers ───────────────────────────────────────────────────────────
 
 def _extract_section(text: str, heading: str, single_line: bool = False) -> str:
-    """Extract content under a markdown heading."""
+    """Extract content under a markdown heading.
+    Matches headings that START WITH the given keyword, so 'Outlook' will
+    match both '## Outlook' and '## Outlook / Guidance'.
+    """
     import re
-    pattern = rf"#+\s*{re.escape(heading)}[:\s]*\n(.*?)(?=\n#+\s|\Z)"
+    # [^\n#]* allows " / Guidance" or ": " suffixes after the keyword
+    pattern = rf"#+\s*{re.escape(heading)}[^\n#]*\n(.*?)(?=\n#+\s|\Z)"
     match   = re.search(pattern, text, re.IGNORECASE | re.DOTALL)
     if not match:
         return ""

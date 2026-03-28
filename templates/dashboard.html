@@ -189,13 +189,11 @@
 
             <div class="filing-headline">{{ s.headline }}</div>
 
-            {% if s.key_points %}
-              {% set kp = s.key_points | tojson | fromjson %}
-              {% if kp %}
-              <ul class="filing-points">
-                {% for pt in kp[:3] %}<li>{{ pt }}</li>{% endfor %}
-              </ul>
-              {% endif %}
+            {% set kp = s.key_points | fromjson %}
+            {% if kp %}
+            <ul class="filing-points">
+              {% for pt in kp[:3] %}<li>{{ pt }}</li>{% endfor %}
+            </ul>
             {% endif %}
 
             <div class="filing-meta">
