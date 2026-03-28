@@ -13,7 +13,10 @@ def _get_client() -> OpenAI:
     global _client
     if _client is None:
         if not config.OPENAI_API_KEY:
-            raise ValueError("OPENAI_API_KEY is not set in your .env file.")
+            raise ValueError(
+                "OPENAI_API_KEY is not set. "
+                "Add it to your .env file (local) or Railway environment variables, then restart/redeploy."
+            )
         _client = OpenAI(api_key=config.OPENAI_API_KEY)
     return _client
 
