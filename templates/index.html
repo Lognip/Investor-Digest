@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Investor Digest</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f1f5f9;
+      color: #1e293b;
+      min-height: 100vh;
+    }
+
+    /* ── Nav ── */
+    nav {
+      background: linear-gradient(135deg, #1e3a5f, #2563eb);
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.18);
+    }
+    nav .brand {
+      font-size: 20px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.5px;
+    }
+    nav .nav-actions { display: flex; gap: 10px; }
+    nav .btn-nav {
+      background: rgba(255,255,255,.15);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,.3);
+      padding: 7px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background .15s;
+    }
+    nav .btn-nav:hover { background: rgba(255,255,255,.25); }
+    nav .btn-nav.accent {
+      background: #fff;
+      color: #2563eb;
+      border-color: #fff;
+    }
+    nav .btn-nav.accent:hover { background: #e0eaff; }
+
+    /* ── Layout ── */
+    .container { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+
+    /* ── Flash messages ── */
+    .flash-list { list-style: none; margin-bottom: 20px; }
+    .flash-list li {
+      padding: 12px 18px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+    .flash-success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+    .flash-error   { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+    .flash-warning { background: #fef9c3; color: #854d0e; border: 1px solid #fef08a; }
+    .flash-info    { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+
+    /* ── Two-column grid ── */
+    .grid { display: grid; grid-template-columns: 320px 1fr; gap: 24px; align-items: start; }
+    @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+
+    /* ── Cards ── */
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      padding: 24px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    }
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ── Add holding form ── */
+    .add-form { display: flex; gap: 8px; }
+    .add-form input {
+      flex: 1;
+      padding: 9px 14px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 14px;
+      text-transform: uppercase;
+      outline: none;
+      transition: border-color .15s;
+    }
+    .add-form input:focus { border-color: #2563eb; }
+    .add-form input::placeholder { text-transform: none; color: #94a3b8; }
+    .btn {
+      padding: 9px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: opacity .15s;
+    }
+    .btn:hover { opacity: .85; }
+    .btn-primary { background: #2563eb; color: #fff; }
+    .btn-danger  { background: #fee2e2; color: #dc2626; font-size: 12px; padding: 5px 10px; }
+    .btn-outline { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+    .btn-sm      { padding: 5px 12px; font-size: 12px; }
+
+    /* ── Holdings list ── */
+    .holding-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .holding-item:last-child { border-bottom: none; }
+    .holding-ticker {
+      font-weight: 700;
+      font-size: 15px;
+      color: #1e3a5f;
+    }
+    .holding-company {
+      font-size: 12px;
+      color: #64748b;
+      margin-top: 2px;
+      max-width: 160px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .holding-actions { display: flex; gap: 6px; }
+
+    /* ── Summary feed ── */
+    .summary-card {
+      background: #fff;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+      padding: 20px;
+      margin-bottom: 14px;
+      transition: box-shadow .15s;
+    }
+    .summary-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.08); }
+    .summary-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+    .summary-ticker {
+      font-size: 18px;
+      font-weight: 800;
+      color: #1e3a5f;
+    }
+    .summary-company {
+      font-size: 12px;
+      color: #64748b;
+    }
+    .badge {
+      font-size: 12px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 999px;
+    }
+    .badge-form {
+      background: #f1f5f9;
+      color: #475569;
+      margin-right: 6px;
+    }
+    .badge-positive { background: #dcfce7; color: #16a34a; }
+    .badge-negative { background: #fee2e2; color: #dc2626; }
+    .badge-neutral  { background: #f1f5f9; color: #6b7280; }
+    .badge-mixed    { background: #fef9c3; color: #a16207; }
+
+    .summary-headline {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1e293b;
+      margin-bottom: 8px;
+      line-height: 1.5;
+    }
+    .summary-points {
+      margin: 0 0 10px 18px;
+      padding: 0;
+    }
+    .summary-points li {
+      font-size: 13px;
+      color: #475569;
+      line-height: 1.7;
+    }
+    .summary-meta {
+      font-size: 12px;
+      color: #94a3b8;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .summary-meta a {
+      color: #2563eb;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .summary-meta a:hover { text-decoration: underline; }
+
+    /* ── Empty state ── */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #94a3b8;
+    }
+    .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-state p { font-size: 15px; }
+
+    /* ── Stat bar ── */
+    .stat-bar {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    .stat {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 14px 20px;
+      flex: 1;
+      min-width: 120px;
+    }
+    .stat-value { font-size: 26px; font-weight: 800; color: #1e3a5f; }
+    .stat-label { font-size: 12px; color: #64748b; margin-top: 2px; }
+  </style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav>
+  <span class="brand">📈 Investor Digest</span>
+  <div class="nav-actions">
+    <form method="POST" action="/check-all" style="display:inline;">
+      <button class="btn-nav" type="submit">🔄 Check All &amp; Email</button>
+    </form>
+    <form method="POST" action="/send-digest" style="display:inline;">
+      <button class="btn-nav accent" type="submit">✉️ Send Digest</button>
+    </form>
+  </div>
+</nav>
+
+<div class="container">
+
+  <!-- Flash messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <ul class="flash-list">
+        {% for category, message in messages %}
+          <li class="flash-{{ category }}">{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
+  <!-- Stats -->
+  <div class="stat-bar">
+    <div class="stat">
+      <div class="stat-value">{{ holdings|length }}</div>
+      <div class="stat-label">Holdings tracked</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">{{ summaries|length }}</div>
+      <div class="stat-label">Filings summarized</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">{{ summaries|selectattr('emailed','equalto',False)|list|length }}</div>
+      <div class="stat-label">Unsent summaries</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">
+        {% set pos = summaries|selectattr('sentiment','equalto','Positive')|list|length %}
+        {% set neg = summaries|selectattr('sentiment','equalto','Negative')|list|length %}
+        {% if pos > neg %}🟢{% elif neg > pos %}🔴{% else %}🟡{% endif %}
+      </div>
+      <div class="stat-label">Overall sentiment</div>
+    </div>
+  </div>
+
+  <!-- Main grid -->
+  <div class="grid">
+
+    <!-- Left: Portfolio sidebar -->
+    <div>
+      <div class="card">
+        <div class="card-title">📂 Your Portfolio</div>
+
+        <!-- Add form -->
+        <form class="add-form" method="POST" action="/holdings/add" style="margin-bottom:20px;">
+          <input type="text" name="ticker" placeholder="Add ticker, e.g. AAPL" maxlength="10" required />
+          <button class="btn btn-primary" type="submit">Add</button>
+        </form>
+
+        <!-- Holdings list -->
+        {% if holdings %}
+          {% for h in holdings %}
+          <div class="holding-item">
+            <div>
+              <div class="holding-ticker">{{ h.ticker }}</div>
+              <div class="holding-company">{{ h.company }}</div>
+            </div>
+            <div class="holding-actions">
+              <form method="POST" action="/holdings/{{ h.id }}/check">
+                <button class="btn btn-outline btn-sm" type="submit" title="Check for new filings">🔍</button>
+              </form>
+              <form method="POST" action="/holdings/{{ h.id }}/delete"
+                    onsubmit="return confirm('Remove {{ h.ticker }} from portfolio?')">
+                <button class="btn btn-danger" type="submit">✕</button>
+              </form>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <p style="font-size:13px;color:#94a3b8;text-align:center;padding:20px 0;">
+            No holdings yet. Add a ticker above to get started.
+          </p>
+        {% endif %}
+      </div>
+
+      <!-- Tips card -->
+      <div class="card" style="margin-top:16px;">
+        <div class="card-title">💡 Tips</div>
+        <p style="font-size:13px;color:#64748b;line-height:1.7;">
+          • Click <strong>Check All &amp; Email</strong> to scan all holdings for new SEC filings and send a digest.<br>
+          • Click 🔍 next to a ticker to check just that stock.<br>
+          • Use <strong>Send Digest</strong> to email any unsent summaries.<br>
+          • The app auto-checks every {{ config.CHECK_INTERVAL_MINUTES }} minutes in the background.
+        </p>
+      </div>
+    </div>
+
+    <!-- Right: Filing feed -->
+    <div>
+      <div class="card-title" style="margin-bottom:14px;">📄 Filing Summaries</div>
+
+      {% if summaries %}
+        {% for s in summaries %}
+          {% set sentiment = s.sentiment|lower %}
+          <div class="summary-card">
+            <div class="summary-header">
+              <div>
+                <div class="summary-ticker">
+                  {{ s.ticker }}
+                  <span style="font-size:13px;font-weight:400;color:#64748b;margin-left:6px;">
+                    {{ s.company }}
+                  </span>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                <span class="badge badge-form">{{ s.form_type }}</span>
+                <span class="badge badge-{{ sentiment }}">
+                  {% if sentiment == 'positive' %}▲{% elif sentiment == 'negative' %}▼{% elif sentiment == 'mixed' %}◆{% else %}●{% endif %}
+                  {{ s.sentiment }}
+                </span>
+              </div>
+            </div>
+
+            <div class="summary-headline">{{ s.headline }}</div>
+
+            {% set kp = s.key_points | tojson | fromjson if s.key_points else [] %}
+            {% if kp %}
+              <ul class="summary-points">
+                {% for point in kp[:4] %}
+                  <li>{{ point }}</li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+
+            <div class="summary-meta">
+              <span>Filed {{ s.filed_date }}</span>
+              {% if s.emailed %}<span style="color:#16a34a;">✓ Emailed</span>{% endif %}
+              <a href="/summary/{{ s.id }}">Full summary →</a>
+              <a href="{{ s.document_url }}" target="_blank" rel="noopener">SEC filing ↗</a>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state">
+          <div class="icon">📭</div>
+          <p>No filings yet. Add holdings and click <strong>Check All</strong> to get started.</p>
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

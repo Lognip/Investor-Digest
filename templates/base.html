@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}Investor Digest{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --blue:    #2563eb;
+      --blue-dk: #1d4ed8;
+      --navy:    #0f172a;
+      --slate:   #475569;
+      --muted:   #94a3b8;
+      --border:  #e2e8f0;
+      --bg:      #f8fafc;
+      --card:    #ffffff;
+      --green:   #16a34a;
+      --red:     #dc2626;
+      --amber:   #d97706;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--navy);
+      min-height: 100vh;
+    }
+
+    /* ── Nav ── */
+    .nav {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      height: 62px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav-brand {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--navy);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .nav-links { display: flex; align-items: center; gap: 8px; }
+    .nav-link {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--slate);
+      text-decoration: none;
+      padding: 7px 14px;
+      border-radius: 8px;
+      transition: background .12s;
+    }
+    .nav-link:hover { background: var(--bg); color: var(--navy); }
+    .nav-link.active { color: var(--blue); }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 18px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      text-decoration: none;
+      transition: opacity .12s, transform .1s;
+      white-space: nowrap;
+    }
+    .btn:active { transform: scale(.98); }
+    .btn:hover  { opacity: .88; }
+    .btn-primary  { background: var(--blue); color: #fff; }
+    .btn-danger   { background: #fee2e2; color: var(--red); }
+    .btn-ghost    { background: transparent; color: var(--slate); border: 1px solid var(--border); }
+    .btn-sm       { padding: 6px 12px; font-size: 13px; }
+
+    /* ── Flash messages ── */
+    .flashes { padding: 0 32px; margin-top: 16px; }
+    .flash {
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .flash-success { background: #dcfce7; color: #166534; }
+    .flash-error   { background: #fee2e2; color: #991b1b; }
+    .flash-warning { background: #fef9c3; color: #854d0e; }
+    .flash-info    { background: #dbeafe; color: #1e40af; }
+
+    /* ── Container ── */
+    .container { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+    .container-sm { max-width: 480px; margin: 0 auto; padding: 48px 24px; }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.05);
+    }
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 18px;
+    }
+
+    /* ── Forms ── */
+    .form-group { margin-bottom: 18px; }
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--slate);
+      margin-bottom: 6px;
+    }
+    .form-input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--navy);
+      transition: border-color .12s;
+      outline: none;
+    }
+    .form-input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+    .form-row { display: flex; gap: 10px; }
+    .form-row .form-input { flex: 1; }
+
+    /* ── Badges ── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 999px;
+    }
+    .badge-positive { background: #dcfce7; color: var(--green); }
+    .badge-negative { background: #fee2e2; color: var(--red); }
+    .badge-neutral  { background: #f1f5f9; color: #6b7280; }
+    .badge-mixed    { background: #fef9c3; color: var(--amber); }
+    .badge-form     { background: #f1f5f9; color: #374151; font-size: 11px; letter-spacing: .4px; }
+
+    /* ── Toggle / checkbox ── */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--bg);
+    }
+    .toggle-row:last-child { border-bottom: none; }
+    .toggle-label { font-size: 14px; color: var(--navy); font-weight: 500; }
+    .toggle-sub   { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+    {% block extra_styles %}{% endblock %}
+  </style>
+</head>
+<body>
+
+{% if current_user.is_authenticated %}
+<nav class="nav">
+  <a class="nav-brand" href="/dashboard">📈 Investor Digest</a>
+  <div class="nav-links">
+    <a class="nav-link {% if request.endpoint=='dashboard' %}active{% endif %}" href="/dashboard">Dashboard</a>
+    <a class="nav-link {% if request.endpoint=='settings' %}active{% endif %}" href="/settings">Settings</a>
+    <a class="nav-link" href="/logout">Log out</a>
+  </div>
+</nav>
+{% endif %}
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flashes">
+      {% for category, message in messages %}
+        <div class="flash flash-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+{% block content %}{% endblock %}
+
+{% block scripts %}{% endblock %}
+</body>
+</html>

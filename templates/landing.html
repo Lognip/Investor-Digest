@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% block title %}Investor Digest — AI-powered filing alerts{% endblock %}
+
+{% block extra_styles %}
+.hero {
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #2563eb 100%);
+  padding: 100px 24px;
+  text-align: center;
+  color: #fff;
+}
+.hero h1 {
+  font-size: clamp(36px, 5vw, 60px);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -1.5px;
+  margin-bottom: 20px;
+}
+.hero h1 span { color: #93c5fd; }
+.hero p {
+  font-size: 18px;
+  color: rgba(255,255,255,.75);
+  max-width: 560px;
+  margin: 0 auto 36px;
+  line-height: 1.65;
+}
+.hero-cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.btn-hero {
+  padding: 14px 28px;
+  font-size: 16px;
+  border-radius: 10px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: opacity .15s;
+}
+.btn-hero:hover { opacity: .88; }
+.btn-hero-primary { background: #fff; color: #1e3a5f; }
+.btn-hero-ghost   { background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.3); }
+
+.features { padding: 80px 24px; }
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 24px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+.feature-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 28px;
+}
+.feature-icon { font-size: 32px; margin-bottom: 14px; }
+.feature-title { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+.feature-desc  { font-size: 14px; color: var(--slate); line-height: 1.65; }
+
+.how-it-works { background: #0f172a; padding: 80px 24px; color: #fff; text-align: center; }
+.how-it-works h2 { font-size: 32px; font-weight: 800; margin-bottom: 48px; }
+.steps { display: flex; gap: 0; max-width: 760px; margin: 0 auto; flex-wrap: wrap; justify-content: center; }
+.step { flex: 1; min-width: 160px; padding: 16px; }
+.step-num {
+  width: 44px; height: 44px;
+  background: #2563eb;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 18px; margin: 0 auto 14px;
+}
+.step-title { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+.step-desc  { font-size: 13px; color: rgba(255,255,255,.6); line-height: 1.5; }
+
+.cta-section { padding: 80px 24px; text-align: center; }
+.cta-section h2 { font-size: 32px; font-weight: 800; margin-bottom: 12px; }
+.cta-section p  { font-size: 16px; color: var(--slate); margin-bottom: 28px; }
+
+.nav-public {
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+  height: 62px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.nav-public .brand { font-size: 18px; font-weight: 800; color: var(--navy); }
+.nav-public-links  { display: flex; gap: 8px; }
+{% endblock %}
+
+{% block content %}
+<nav class="nav-public">
+  <span class="brand">📈 Investor Digest</span>
+  <div class="nav-public-links">
+    <a class="btn btn-ghost btn-sm" href="/login">Log in</a>
+    <a class="btn btn-primary btn-sm" href="/register">Get started free</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <h1>Never miss a filing<br>that <span>moves your portfolio.</span></h1>
+  <p>Investor Digest monitors SEC filings for your stocks, summarizes them with AI, and sends you a clear digest — so you always know what matters.</p>
+  <div class="hero-cta">
+    <a class="btn-hero btn-hero-primary" href="/register">Start for free →</a>
+    <a class="btn-hero btn-hero-ghost" href="/login">I already have an account</a>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="features">
+  <div style="text-align:center; margin-bottom:48px;">
+    <h2 style="font-size:32px; font-weight:800; margin-bottom:10px;">Everything you need to stay informed</h2>
+    <p style="font-size:16px; color:var(--slate);">No financial jargon. No noise. Just what matters to you as an investor.</p>
+  </div>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">🔍</div>
+      <div class="feature-title">Automatic SEC Monitoring</div>
+      <div class="feature-desc">We watch SEC EDGAR 24/7 for 10-Ks, 10-Qs, 8-Ks and more across every stock in your portfolio.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🤖</div>
+      <div class="feature-title">AI-Powered Summaries</div>
+      <div class="feature-desc">Claude AI reads each filing and extracts the headline, key financials, risks, and guidance — in plain English.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📧</div>
+      <div class="feature-title">Beautiful Email Digests</div>
+      <div class="feature-desc">Get a formatted email the moment new filings drop. Colour-coded sentiment, bullet points, and links to the full SEC filing.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <div class="feature-title">Clean Dashboard</div>
+      <div class="feature-desc">See your entire portfolio and all recent filings in one place. Add or remove stocks in seconds.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <div class="feature-title">Sentiment Tracking</div>
+      <div class="feature-desc">Each summary is scored Positive, Negative, Neutral or Mixed so you can scan filings at a glance.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔒</div>
+      <div class="feature-title">Your Data, Your Account</div>
+      <div class="feature-desc">Each user gets their own private portfolio. Your holdings and summaries are never shared.</div>
+    </div>
+  </div>
+</section>
+
+<!-- How it works -->
+<section class="how-it-works">
+  <h2>Up and running in 3 steps</h2>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-title">Create your account</div>
+      <div class="step-desc">Sign up with just your email. No credit card needed to get started.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-title">Add your stocks</div>
+      <div class="step-desc">Type in any ticker — AAPL, MSFT, NVDA — and we start watching immediately.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-title">Get your digest</div>
+      <div class="step-desc">When a new filing drops, we summarize it and send it straight to your inbox.</div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <h2>Ready to stay ahead of your portfolio?</h2>
+  <p>Join investors who never miss a material filing again.</p>
+  <a class="btn btn-primary" style="font-size:16px; padding:14px 32px;" href="/register">Get started free →</a>
+</section>
+
+<footer style="text-align:center; padding:32px; font-size:13px; color:var(--muted); border-top:1px solid var(--border);">
+  <p>📈 Investor Digest · Powered by Claude AI + SEC EDGAR</p>
+  <p style="margin-top:6px;">For informational purposes only. Not financial advice.</p>
+</footer>
+{% endblock %}

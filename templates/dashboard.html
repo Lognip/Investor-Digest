@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Investor Digest{% endblock %}
+
+{% block extra_styles %}
+.page { padding: 32px 24px; max-width: 1100px; margin: 0 auto; }
+
+/* Stats row */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 28px; }
+.stat { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; }
+.stat-val  { font-size: 28px; font-weight: 800; color: var(--navy); line-height: 1; }
+.stat-lbl  { font-size: 12px; color: var(--muted); margin-top: 4px; font-weight: 500; }
+
+/* Main grid */
+.main-grid { display: grid; grid-template-columns: 300px 1fr; gap: 22px; align-items: start; }
+@media (max-width: 820px) { .main-grid { grid-template-columns: 1fr; } }
+
+/* Sidebar */
+.sidebar-actions { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
+.sidebar-actions form, .sidebar-actions a { width: 100%; }
+.sidebar-actions .btn { width: 100%; justify-content: center; padding: 11px; }
+
+.holding-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--bg);
+}
+.holding-row:last-child { border-bottom: none; }
+.holding-ticker { font-weight: 700; font-size: 15px; color: var(--navy); }
+.holding-company { font-size: 12px; color: var(--muted); margin-top: 1px; max-width: 155px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.holding-btns { display: flex; gap: 5px; }
+
+/* Add form */
+.add-form { display: flex; gap: 8px; margin-bottom: 20px; }
+.add-form input { flex: 1; }
+.add-form input { text-transform: uppercase; }
+.add-form input::placeholder { text-transform: none; }
+
+/* Filing cards */
+.filing-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px 22px;
+  margin-bottom: 12px;
+  transition: box-shadow .15s;
+}
+.filing-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.07); }
+.filing-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
+.filing-ticker { font-size: 17px; font-weight: 800; color: var(--navy); }
+.filing-company { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.filing-badges { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.filing-headline { font-size: 14px; font-weight: 600; color: var(--navy); margin-bottom: 8px; line-height: 1.5; }
+.filing-points { margin: 0 0 10px 18px; }
+.filing-points li { font-size: 13px; color: var(--slate); line-height: 1.7; }
+.filing-meta { font-size: 12px; color: var(--muted); display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+.filing-meta a { color: var(--blue); text-decoration: none; font-weight: 500; }
+.filing-meta a:hover { text-decoration: underline; }
+
+.empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
+.empty-icon  { font-size: 48px; margin-bottom: 12px; }
+.empty-text  { font-size: 15px; line-height: 1.6; }
+{% endblock %}
+
+{% block content %}
+<div class="page">
+
+  <!-- Page header -->
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:12px;">
+    <div>
+      <h1 style="font-size:22px; font-weight:800;">
+        {% if current_user.name %}Hey {{ current_user.name }} 👋{% else %}Your Dashboard{% endif %}
+      </h1>
+      <p style="font-size:14px; color:var(--muted); margin-top:3px;">
+        Watching {{ holdings|length }} stock{{ 's' if holdings|length != 1 else '' }} for new SEC filings
+      </p>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-val">{{ holdings|length }}</div>
+      <div class="stat-lbl">Stocks tracked</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val">{{ summaries|length }}</div>
+      <div class="stat-lbl">Filings summarized</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val">{{ summaries|selectattr('emailed','equalto',False)|list|length }}</div>
+      <div class="stat-lbl">Pending email</div>
+    </div>
+    <div class="stat">
+      {% set pos = summaries|selectattr('sentiment','equalto','Positive')|list|length %}
+      {% set neg = summaries|selectattr('sentiment','equalto','Negative')|list|length %}
+      <div class="stat-val">{% if pos > neg %}🟢{% elif neg > pos %}🔴{% else %}🟡{% endif %}</div>
+      <div class="stat-lbl">Overall sentiment</div>
+    </div>
+  </div>
+
+  <!-- Main grid -->
+  <div class="main-grid">
+
+    <!-- Sidebar -->
+    <div>
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-title">My Portfolio</div>
+
+        <!-- Add ticker -->
+        <form class="add-form" method="POST" action="/holdings/add">
+          <input class="form-input" type="text" name="ticker" placeholder="Add ticker, e.g. AAPL" maxlength="10" required>
+          <button class="btn btn-primary" type="submit">Add</button>
+        </form>
+
+        <!-- Holdings list -->
+        {% if holdings %}
+          {% for h in holdings %}
+          <div class="holding-row">
+            <div>
+              <div class="holding-ticker">{{ h.ticker }}</div>
+              <div class="holding-company">{{ h.company }}</div>
+            </div>
+            <div class="holding-btns">
+              <form method="POST" action="/holdings/{{ h.id }}/check">
+                <button class="btn btn-ghost btn-sm" type="submit" title="Check for new filings">🔍</button>
+              </form>
+              <form method="POST" action="/holdings/{{ h.id }}/delete"
+                    onsubmit="return confirm('Remove {{ h.ticker }} from your portfolio?')">
+                <button class="btn btn-danger btn-sm" type="submit">✕</button>
+              </form>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <p style="font-size:13px; color:var(--muted); text-align:center; padding:16px 0;">
+            Add your first stock above to get started.
+          </p>
+        {% endif %}
+      </div>
+
+      <!-- Actions -->
+      {% if holdings %}
+      <div class="card">
+        <div class="card-title">Actions</div>
+        <div class="sidebar-actions">
+          <form method="POST" action="/check-all">
+            <button class="btn btn-primary" type="submit">🔄 Check All &amp; Email Digest</button>
+          </form>
+          <form method="POST" action="/send-digest">
+            <button class="btn btn-ghost" type="submit">✉️ Re-send Pending Summaries</button>
+          </form>
+        </div>
+        <p style="font-size:12px; color:var(--muted); line-height:1.6;">
+          Digests are emailed to <strong>{{ current_user.digest_address }}</strong>.
+          Change this in <a href="/settings" style="color:var(--blue);">Settings</a>.
+        </p>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Filing feed -->
+    <div>
+      <div style="font-size:15px; font-weight:700; color:var(--navy); margin-bottom:14px;">
+        Recent Filings
+      </div>
+
+      {% if summaries %}
+        {% for s in summaries %}
+          {% set sent = s.sentiment | lower %}
+          <div class="filing-card">
+            <div class="filing-header">
+              <div>
+                <div class="filing-ticker">{{ s.ticker }}
+                  <span style="font-size:13px; font-weight:400; color:var(--muted);">{{ s.company }}</span>
+                </div>
+              </div>
+              <div class="filing-badges">
+                <span class="badge badge-form">{{ s.form_type }}</span>
+                <span class="badge badge-{{ sent }}">
+                  {% if sent=='positive' %}▲ Positive
+                  {% elif sent=='negative' %}▼ Negative
+                  {% elif sent=='mixed' %}◆ Mixed
+                  {% else %}● Neutral{% endif %}
+                </span>
+              </div>
+            </div>
+
+            <div class="filing-headline">{{ s.headline }}</div>
+
+            {% if s.key_points %}
+              {% set kp = s.key_points | tojson | fromjson %}
+              {% if kp %}
+              <ul class="filing-points">
+                {% for pt in kp[:3] %}<li>{{ pt }}</li>{% endfor %}
+              </ul>
+              {% endif %}
+            {% endif %}
+
+            <div class="filing-meta">
+              <span>Filed {{ s.filed_date }}</span>
+              {% if s.emailed %}<span style="color:var(--green);">✓ Emailed</span>{% endif %}
+              <a href="/summary/{{ s.id }}">Full analysis →</a>
+              <a href="{{ s.document_url }}" target="_blank" rel="noopener">SEC filing ↗</a>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state">
+          <div class="empty-icon">📭</div>
+          <div class="empty-text">
+            No filings yet. Add stocks to your portfolio,<br>
+            then click <strong>Check All &amp; Email Digest</strong>.
+          </div>
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}

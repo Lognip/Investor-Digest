@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Settings — Investor Digest{% endblock %}
+
+{% block extra_styles %}
+.page { max-width: 620px; margin: 0 auto; padding: 36px 24px 60px; }
+.page-title { font-size: 22px; font-weight: 800; margin-bottom: 24px; }
+.section-gap { margin-bottom: 18px; }
+.divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+.hint { font-size: 12px; color: var(--muted); margin-top: 5px; line-height: 1.5; }
+{% endblock %}
+
+{% block content %}
+<div class="page">
+  <div class="page-title">⚙️ Settings</div>
+
+  <form method="POST" action="/settings">
+
+    <!-- Profile -->
+    <div class="card section-gap">
+      <div class="card-title">Profile</div>
+      <div class="form-group">
+        <label class="form-label">Your name</label>
+        <input class="form-input" type="text" name="name" value="{{ current_user.name }}" placeholder="Jane Smith">
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Account email</label>
+        <input class="form-input" type="email" value="{{ current_user.email }}" disabled style="background:#f8fafc; color:var(--muted);">
+        <div class="hint">Your login email cannot be changed.</div>
+      </div>
+    </div>
+
+    <!-- Digest delivery -->
+    <div class="card section-gap">
+      <div class="card-title">Digest Delivery</div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Send digests to</label>
+        <input class="form-input" type="email" name="digest_email"
+               value="{{ current_user.digest_email }}"
+               placeholder="{{ current_user.email }}">
+        <div class="hint">Leave blank to use your account email ({{ current_user.email }}).</div>
+      </div>
+    </div>
+
+    <!-- Notification preferences -->
+    <div class="card section-gap">
+      <div class="card-title">Filing Notifications</div>
+      <p style="font-size:13px; color:var(--slate); margin-bottom:16px; line-height:1.6;">
+        Choose which filing types you want to be notified about.
+      </p>
+
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-label">8-K Filings</div>
+          <div class="toggle-sub">Material events — earnings, M&amp;A, executive changes</div>
+        </div>
+        <input type="checkbox" name="notify_8k" {% if current_user.notify_on_8k %}checked{% endif %}
+               style="width:18px; height:18px; cursor:pointer; accent-color:var(--blue);">
+      </div>
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-label">10-Q Filings</div>
+          <div class="toggle-sub">Quarterly financial reports</div>
+        </div>
+        <input type="checkbox" name="notify_10q" {% if current_user.notify_on_10q %}checked{% endif %}
+               style="width:18px; height:18px; cursor:pointer; accent-color:var(--blue);">
+      </div>
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-label">10-K Filings</div>
+          <div class="toggle-sub">Annual reports — full-year financials and strategy</div>
+        </div>
+        <input type="checkbox" name="notify_10k" {% if current_user.notify_on_10k %}checked{% endif %}
+               style="width:18px; height:18px; cursor:pointer; accent-color:var(--blue);">
+      </div>
+    </div>
+
+    <!-- Change password -->
+    <div class="card section-gap">
+      <div class="card-title">Change Password</div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">New password</label>
+        <input class="form-input" type="password" name="new_password" placeholder="Leave blank to keep current password" autocomplete="new-password">
+        <div class="hint">Must be at least 8 characters.</div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" style="width:100%; justify-content:center; padding:13px; font-size:15px;" type="submit">
+      Save Settings
+    </button>
+  </form>
+</div>
+{% endblock %}

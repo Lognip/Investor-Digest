@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% block title %}{{ summary.ticker }} {{ summary.form_type }} — Investor Digest{% endblock %}
+
+{% block extra_styles %}
+.page { max-width: 780px; margin: 0 auto; padding: 36px 24px 60px; }
+.back-link { font-size: 14px; color: var(--blue); text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; margin-bottom: 22px; }
+.back-link:hover { text-decoration: underline; }
+
+.hero-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 30px 32px;
+  margin-bottom: 18px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.05);
+}
+.ticker-row { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+.ticker-big  { font-size: 30px; font-weight: 800; color: var(--navy); }
+.company-sub { font-size: 14px; color: var(--muted); margin-top: 3px; }
+.headline    { font-size: 19px; font-weight: 700; line-height: 1.5; margin-bottom: 10px; }
+.meta-row    { font-size: 13px; color: var(--muted); display: flex; gap: 14px; flex-wrap: wrap; }
+.meta-row a  { color: var(--blue); text-decoration: none; font-weight: 500; }
+
+.section {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 22px 26px;
+  margin-bottom: 14px;
+}
+.section-label {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+.kp-list { list-style: none; padding: 0; }
+.kp-list li {
+  display: flex;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--bg);
+  font-size: 14px;
+  color: var(--navy);
+  line-height: 1.5;
+}
+.kp-list li:last-child { border-bottom: none; }
+.kp-list li::before { content: "›"; color: var(--blue); font-weight: 800; flex-shrink: 0; }
+.body-text { font-size: 14px; color: var(--slate); line-height: 1.75; white-space: pre-wrap; }
+.accent-left { padding-left: 14px; }
+.risk-left    { border-left: 3px solid var(--red); }
+.outlook-left { border-left: 3px solid var(--blue); }
+.watch-left   { border-left: 3px solid #7c3aed; }
+
+.raw-toggle {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 18px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--slate);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  user-select: none;
+}
+.raw-body {
+  display: none;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+  padding: 16px 18px;
+  font-size: 13px;
+  font-family: 'SF Mono', Menlo, monospace;
+  line-height: 1.7;
+  color: var(--slate);
+  white-space: pre-wrap;
+  max-height: 380px;
+  overflow-y: auto;
+}
+{% endblock %}
+
+{% block content %}
+<div class="page">
+  <a class="back-link" href="/dashboard">← Back to Dashboard</a>
+
+  <!-- Hero -->
+  <div class="hero-card">
+    <div class="ticker-row">
+      <div>
+        <div class="ticker-big">{{ summary.ticker }}</div>
+        <div class="company-sub">{{ summary.company }}</div>
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+        <span class="badge badge-form">{{ summary.form_type }}</span>
+        <span class="badge badge-{{ summary.sentiment | lower }}">
+          {% if summary.sentiment=='Positive' %}▲ Positive
+          {% elif summary.sentiment=='Negative' %}▼ Negative
+          {% elif summary.sentiment=='Mixed' %}◆ Mixed
+          {% else %}● Neutral{% endif %}
+        </span>
+      </div>
+    </div>
+    <div class="headline">{{ summary.headline }}</div>
+    <div class="meta-row">
+      <span>Filed {{ summary.filed_date }}</span>
+      {% if summary.emailed %}<span style="color:var(--green);">✓ Emailed</span>{% endif %}
+      <a href="{{ summary.document_url }}" target="_blank" rel="noopener">View full SEC filing ↗</a>
+    </div>
+  </div>
+
+  <!-- Key Points -->
+  {% if key_points %}
+  <div class="section">
+    <div class="section-label">Key Points</div>
+    <ul class="kp-list">
+      {% for pt in key_points %}<li>{{ pt }}</li>{% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  <!-- Financials -->
+  {% if summary.financials %}
+  <div class="section">
+    <div class="section-label">Financial Highlights</div>
+    <div class="body-text">{{ summary.financials }}</div>
+  </div>
+  {% endif %}
+
+  <!-- Risks -->
+  {% if summary.risks %}
+  <div class="section">
+    <div class="section-label" style="color:var(--red);">Risk Factors</div>
+    <div class="body-text accent-left risk-left">{{ summary.risks }}</div>
+  </div>
+  {% endif %}
+
+  <!-- Outlook -->
+  {% if summary.outlook %}
+  <div class="section">
+    <div class="section-label" style="color:var(--blue);">Outlook / Guidance</div>
+    <div class="body-text accent-left outlook-left">{{ summary.outlook }}</div>
+  </div>
+  {% endif %}
+
+  <!-- What to Watch -->
+  {% if summary.action_items %}
+  <div class="section">
+    <div class="section-label" style="color:#7c3aed;">What to Watch</div>
+    <div class="body-text accent-left watch-left">{{ summary.action_items }}</div>
+  </div>
+  {% endif %}
+
+  <!-- Raw AI analysis toggle -->
+  <div style="margin-bottom:24px;">
+    <div class="raw-toggle" onclick="toggleRaw(this)">
+      <span>📝 Full AI Analysis</span><span>▼</span>
+    </div>
+    <div class="raw-body">{{ summary.raw_summary }}</div>
+  </div>
+
+  <div style="display:flex; gap:10px; flex-wrap:wrap;">
+    <a class="btn btn-ghost" href="/dashboard">← Dashboard</a>
+    <a class="btn btn-primary" href="{{ summary.document_url }}" target="_blank" rel="noopener">
+      View Full SEC Filing ↗
+    </a>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleRaw(el) {
+  const body = el.nextElementSibling;
+  const open = body.style.display === 'block';
+  body.style.display = open ? 'none' : 'block';
+  el.querySelector('span:last-child').textContent = open ? '▼' : '▲';
+}
+</script>
+{% endblock %}
