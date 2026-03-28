@@ -49,8 +49,6 @@ def summarize_filing(
         "raw_summary":   full markdown summary
     }
     """
-    client = _get_client()
-
     prompt = f"""
 Company: {company} ({ticker})
 Filing Type: {form_type}
@@ -74,6 +72,7 @@ Format your response with clear markdown headings. Be concise — the investor i
 """
 
     try:
+        client = _get_client()   # inside try so key errors are caught gracefully
         message = client.messages.create(
             model="claude-opus-4-6",
             max_tokens=1024,

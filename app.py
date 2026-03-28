@@ -68,25 +68,30 @@ def process_holding(holding: Holding, user: "User | None" = None) -> list[Filing
 
     created = []
     for f in new_filings:
-        if FilingSummary.query.filter_by(accession_number=f["accession_number"]).first():
-            continue
-        text    = edgar.fetch_filing_text(f["document_url"])
-        summary = summarizer.summarize_filing(
-            company=f["company"], ticker=f["ticker"],
-            form_type=f["form"], filed_date=f["filed"], filing_text=text,
-        )
-        record = FilingSummary(
-            holding_id=holding.id, ticker=f["ticker"], company=f["company"],
-            form_type=f["form"], filed_date=f["filed"],
-            accession_number=f["accession_number"], document_url=f["document_url"],
-            headline=summary.get("headline",""),
-            key_points=json.dumps(summary.get("key_points",[])),
-            financials=summary.get("financials",""), risks=summary.get("risks",""),
-            outlook=summary.get("outlook",""), sentiment=summary.get("sentiment","Neutral"),
-            action_items=summary.get("action_items",""), raw_summary=summary.get("raw_summary",""),
-        )
-        db.session.add(record)
-        created.append(record)
+        try:
+            if FilingSummary.query.filter_by(accession_number=f["accession_number"]).first():
+                continue
+            text    = edgar.fetch_filing_text(f["document_url"])
+            summary = summarizer.summarize_filing(
+                company=f["company"], ticker=f["ticker"],
+                form_type=f["form"], filed_date=f["filed"], filing_text=text,
+            )
+            record = FilingSummary(
+                holding_id=holding.id, ticker=f["ticker"], company=f["company"],
+                form_type=f["form"], filed_date=f["filed"],
+                accession_number=f["accession_number"], document_url=f["document_url"],
+                headline=summary.get("headline",""),
+                key_points=json.dumps(summary.get("key_points",[])),
+                financials=summary.get("financials",""), risks=summary.get("risks",""),
+                outlook=summary.get("outlook",""), sentiment=summary.get("sentiment","Neutral"),
+                action_items=summary.get("action_items",""), raw_summary=summary.get("raw_summary",""),
+            )
+            db.session.add(record)
+            created.append(record)
+        except Exception as e:
+            print(f"[process_holding] Error processing {f.get('ticker')} {f.get('form')}: {e}")
+            import traceback; traceback.print_exc()
+            continue   # skip this filing, keep processing others
 
     if new_filings:
         holding.last_checked = date.today().isoformat()
@@ -329,6 +334,6 @@ if __name__ == "__main__":
     scheduler = start_scheduler()
     print(f"\n🚀 {config.APP_NAME} running at http://localhost:5000\n")
     try:
-        app.run(debug=False, host="0.0.0.0", port=5000, use_reloader=False)
+        app.run(debug=True, host="0.0.0.0", port=5000, use_reloader=False)
     finally:
         scheduler.shutdown()
